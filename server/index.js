@@ -7,12 +7,11 @@ const { Server } = require("socket.io");
 const cors = require("cors");
 const parser = require("socket.io-msgpack-parser");
 
-const isDev = process.env.NODE_ENV !== "production";
-const CLIENT_URL = isDev ? "http://localhost:5173" : "https://sketchify-three.vercel.app";
+const CLIENT_URL = "https://sketchify-three.vercel.app";
 const PORT = process.env.PORT || 8080;
 
 const corsOptions = {
-  origin: [CLIENT_URL, "https://sketchify-three.vercel.app"],
+  origin: [CLIENT_URL],
   methods: ["GET", "POST"],
   credentials: true
 };
