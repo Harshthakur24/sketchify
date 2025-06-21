@@ -7,10 +7,10 @@ const { Server } = require("socket.io");
 const cors = require("cors");
 const parser = require("socket.io-msgpack-parser");
 
-const isDev = process.env.NODE_ENV !== "production";
 const ALLOWED_ORIGINS = [
   "http://localhost:5173",
-  "https://sketchify-three.vercel.app"
+  "https://sketchify-three.vercel.app",
+  "https://sketchify-three.vercel.app:5173"
 ];
 
 const corsOptions = {
@@ -68,5 +68,5 @@ app.get("/api/health", (req, res) => {
 
 const PORT = process.env.PORT || 8080;
 server.listen(PORT, () => {
-  console.log(`Server running in ${isDev ? "development" : "production"} mode on port ${PORT}`);
+  console.log(`Server running on port ${PORT}`);
 });
