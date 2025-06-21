@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Delete, Download, Folder, MenuIcon, Xmark } from "../assets/icons";
 import { useAppContext } from "../provider/AppStates";
 import { saveElements, uploadElements } from "../helper/element";
+import PropTypes from 'prop-types';
 
 export default function Menu() {
   const { elements, setElements } = useAppContext();
@@ -44,3 +45,9 @@ function MenuBox({ elements, setElements, setShow }) {
     </>
   );
 }
+
+MenuBox.propTypes = {
+  elements: PropTypes.array.isRequired,
+  setElements: PropTypes.func.isRequired,
+  setShow: PropTypes.func.isRequired
+};

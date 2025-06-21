@@ -5,6 +5,7 @@ import { useAppContext } from "../provider/AppStates";
 import { v4 as uuid } from "uuid";
 import { useSearchParams } from "react-router-dom";
 import { socket } from "../api/socket";
+import PropTypes from 'prop-types';
 
 export default function Collaboration() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -35,7 +36,7 @@ export default function Collaboration() {
         className={"collaborateButton" + `${session ? " active" : ""}`}
         onClick={() => setOpen(true)}
       >
-        Share
+        Live Share
       </button>
 
       {open && (
@@ -58,7 +59,7 @@ function CreateSession({ startSession }) {
       <div>
         <p>Invite people to collaborate on your drawing.</p>
         <p>
-          Don't worry, the session is end-to-end encrypted, and fully private.
+          Don&apos;t worry, the session is end-to-end encrypted, and fully private.
           Not even our server can see what you draw.
         </p>
       </div>
@@ -100,7 +101,7 @@ function SessionInfo({ endSession }) {
 }
 
 function CollabBox({ collabState, children }) {
-  const [Open, setOpen] = collabState;
+  const [, setOpen] = collabState;
   const exit = () => setOpen(false);
 
   return (
@@ -127,3 +128,16 @@ function CollabBox({ collabState, children }) {
     </div>
   );
 }
+
+CreateSession.propTypes = {
+  startSession: PropTypes.func.isRequired
+};
+
+SessionInfo.propTypes = {
+  endSession: PropTypes.func.isRequired
+};
+
+CollabBox.propTypes = {
+  collabState: PropTypes.array.isRequired,
+  children: PropTypes.node.isRequired
+};
