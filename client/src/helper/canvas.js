@@ -51,6 +51,17 @@ export const shapes = {
       2 * Math.PI
     );
   },
+  pen: (x1, y1, x2, y2, ctx, points) => {
+    if (!points || points.length < 2) return;
+    
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    
+    ctx.moveTo(points[0].x, points[0].y);
+    for (let i = 1; i < points.length; i++) {
+      ctx.lineTo(points[i].x, points[i].y);
+    }
+  },
 };
 
 export function distance(a, b) {
@@ -189,6 +200,7 @@ export function draw(element, context) {
     strokeStyle,
     fill,
     opacity,
+    points,
   } = element;
 
   context.lineWidth = strokeWidth;
@@ -200,10 +212,16 @@ export function draw(element, context) {
   if (strokeStyle == "dotted") context.setLineDash([strokeWidth, strokeWidth]);
   if (strokeStyle == "solid") context.setLineDash([0, 0]);
 
-  shapes[tool](x1, y1, x2, y2, context);
-  context.fill();
+  if (tool === "pen") {
+    shapes[tool](x1, y1, x2, y2, context, points);
+    context.stroke();
+  } else {
+    shapes[tool](x1, y1, x2, y2, context);
+    context.fill();
+    if (strokeWidth > 0) context.stroke();
+  }
+  
   context.closePath();
-  if (strokeWidth > 0) context.stroke();
 }
 
 function rgba(color, opacity) {

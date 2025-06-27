@@ -91,24 +91,32 @@ export default function useCanvas() {
       const element = getElementPosition(clientX, clientY, elements);
 
       if (element) {
-        const offsetX = clientX - element.x1;
-        const offsetY = clientY - element.y1;
-
-        if (event.altKey) {
-          duplicateElement(element, setElements, setSelectedElement, 0, {
-            offsetX,
-            offsetY,
-          });
-        } else {
+        if (element.tool === "pen") {
+          const offsetX = clientX - element.x1;
+          const offsetY = clientY - element.y1;
           setElements((prevState) => prevState);
           setMouseAction({ x: event.clientX, y: event.clientY });
           setSelectedElement({ ...element, offsetX, offsetY });
+          setAction("move");
+        } else {
+          const offsetX = clientX - element.x1;
+          const offsetY = clientY - element.y1;
+
+          if (event.altKey) {
+            duplicateElement(element, setElements, setSelectedElement, 0, {
+              offsetX,
+              offsetY,
+            });
+          } else {
+            setElements((prevState) => prevState);
+            setMouseAction({ x: event.clientX, y: event.clientY });
+            setSelectedElement({ ...element, offsetX, offsetY });
+          }
+          setAction("move");
         }
-        setAction("move");
       } else {
         setSelectedElement(null);
       }
-
       return;
     }
 
@@ -147,30 +155,65 @@ export default function useCanvas() {
     }
 
     if (action == "draw") {
-      const { id } = elements.at(-1);
-      updateElement(
-        id,
-        { x2: clientX, y2: clientY },
-        setElements,
-        elements,
-        true
-      );
-    } else if (action == "move") {
-      const { id, x1, y1, x2, y2, offsetX, offsetY } = selectedElement;
+      const index = elements.length - 1;
+      const { x1, y1, tool } = elements[index];
 
+      if (tool === "pen") {
+        const newPoints = [...elements[index].points, { x: clientX, y: clientY }];
+        updateElement(
+          elements[index].id, 
+          { points: newPoints, x2: clientX, y2: clientY }, 
+          setElements, 
+          elements,
+          false
+        );
+      } else {
+        updateElement(
+          elements[index].id, 
+          { x1, y1, x2: clientX, y2: clientY }, 
+          setElements, 
+          elements,
+          false
+        );
+      }
+      return;
+    }
+
+    if (action == "move") {
+      const { id, x1, y1, x2, y2, offsetX, offsetY, tool, points } = selectedElement;
       const width = x2 - x1;
       const height = y2 - y1;
+      const newX = clientX - offsetX;
+      const newY = clientY - offsetY;
 
-      const nx = clientX - offsetX;
-      const ny = clientY - offsetY;
-
-      updateElement(
-        id,
-        { x1: nx, y1: ny, x2: nx + width, y2: ny + height },
-        setElements,
-        elements,
-        true
-      );
+      if (tool === "pen") {
+        const dx = newX - x1;
+        const dy = newY - y1;
+        const newPoints = points.map(point => ({
+          x: point.x + dx,
+          y: point.y + dy
+        }));
+        updateElement(
+          id,
+          { 
+            points: newPoints,
+            x1: newX,
+            y1: newY,
+            x2: x2 + dx,
+            y2: y2 + dy
+          },
+          setElements,
+          elements
+        );
+      } else {
+        updateElement(
+          id,
+          { x1: newX, y1: newY, x2: newX + width, y2: newY + height },
+          setElements,
+          elements
+        );
+      }
+      return;
     } else if (action == "translate") {
       const x = clientX - translate.sx;
       const y = clientY - translate.sy;
@@ -206,11 +249,18 @@ export default function useCanvas() {
 
     if (action == "draw") {
       const lastElement = elements.at(-1);
-      const { id, x1, y1, x2, y2 } = adjustCoordinates(lastElement);
-      updateElement(id, { x1, x2, y1, y2 }, setElements, elements, true);
-      if (!lockTool) {
-        setSelectedTool("selection");
-        setSelectedElement(lastElement);
+      if (lastElement.tool === "pen") {
+        updateElement(lastElement.id, {}, setElements, elements, true);
+        if (!lockTool) {
+          setSelectedTool("selection");
+        }
+      } else {
+        const { id, x1, y1, x2, y2 } = adjustCoordinates(lastElement);
+        updateElement(id, { x1, x2, y1, y2 }, setElements, elements, true);
+        if (!lockTool) {
+          setSelectedTool("selection");
+          setSelectedElement(lastElement);
+        }
       }
     }
 

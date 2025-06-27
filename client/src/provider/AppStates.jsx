@@ -1,4 +1,5 @@
 import { createContext, useContext, useEffect, useState } from "react";
+import PropTypes from 'prop-types';
 import {
   Circle,
   Line,
@@ -8,6 +9,7 @@ import {
   Hand,
   Lock,
   Arrow,
+  Pen,
 } from "../assets/icons";
 import { BACKGROUND_COLORS, STROKE_COLORS, STROKE_STYLES } from "../global/var";
 import { getElementById, minmax } from "../helper/element";
@@ -102,6 +104,12 @@ export function AppContextProvider({ children }) {
         toolAction,
       },
       {
+        slug: "pen",
+        icon: Pen,
+        title: "Pen",
+        toolAction,
+      },
+      {
         slug: "rectangle",
         icon: Rectangle,
         title: "Rectangle",
@@ -130,7 +138,7 @@ export function AppContextProvider({ children }) {
         icon: Line,
         title: "Line",
         toolAction,
-      },
+      }
     ],
   ];
 
@@ -175,6 +183,10 @@ export function AppContextProvider({ children }) {
     </AppContext.Provider>
   );
 }
+
+AppContextProvider.propTypes = {
+  children: PropTypes.node.isRequired
+};
 
 export function useAppContext() {
   return useContext(AppContext);

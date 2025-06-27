@@ -2,31 +2,43 @@ import { distance } from "./canvas";
 import { v4 as uuid } from "uuid";
 
 export function isWithinElement(x, y, element) {
-  let { tool, x1, y1, x2, y2, strokeWidth } = element;
+  let { tool, x1, y1, x2, y2, strokeWidth, points } = element;
+  let a, b, c, offset, width, height, centreX, centreY, mouseToCentreX, mouseToCentreY, radiusX, radiusY, minX, maxX, minY, maxY;
 
   switch (tool) {
+    case "pen":
+      if (!points || points.length < 2) return false;
+      for (let i = 1; i < points.length; i++) {
+        a = points[i - 1];
+        b = points[i];
+        c = { x, y };
+        offset = distance(a, b) - (distance(a, c) + distance(b, c));
+        if (Math.abs(offset) < (strokeWidth || 1)) {
+          return true;
+        }
+      }
+      return false;
     case "arrow":
     case "line":
-      const a = { x: x1, y: y1 };
-      const b = { x: x2, y: y2 };
-      const c = { x, y };
-
-      const offset = distance(a, b) - (distance(a, c) + distance(b, c));
+      a = { x: x1, y: y1 };
+      b = { x: x2, y: y2 };
+      c = { x, y };
+      offset = distance(a, b) - (distance(a, c) + distance(b, c));
       return Math.abs(offset) < (0.05 * strokeWidth || 1);
     case "circle":
-      const width = x2 - x1 + strokeWidth;
-      const height = y2 - y1 + strokeWidth;
+      width = x2 - x1 + strokeWidth;
+      height = y2 - y1 + strokeWidth;
       x1 -= strokeWidth / 2;
       y1 -= strokeWidth / 2;
 
-      const centreX = x1 + width / 2;
-      const centreY = y1 + height / 2;
+      centreX = x1 + width / 2;
+      centreY = y1 + height / 2;
 
-      const mouseToCentreX = centreX - x;
-      const mouseToCentreY = centreY - y;
+      mouseToCentreX = centreX - x;
+      mouseToCentreY = centreY - y;
 
-      const radiusX = Math.abs(width) / 2;
-      const radiusY = Math.abs(height) / 2;
+      radiusX = Math.abs(width) / 2;
+      radiusY = Math.abs(height) / 2;
 
       return (
         (mouseToCentreX * mouseToCentreX) / (radiusX * radiusX) +
@@ -36,10 +48,10 @@ export function isWithinElement(x, y, element) {
 
     case "diamond":
     case "rectangle":
-      const minX = Math.min(x1, x2) - strokeWidth / 2;
-      const maxX = Math.max(x1, x2) + strokeWidth / 2;
-      const minY = Math.min(y1, y2) - strokeWidth / 2;
-      const maxY = Math.max(y1, y2) + strokeWidth / 2;
+      minX = Math.min(x1, x2) - strokeWidth / 2;
+      maxX = Math.max(x1, x2) + strokeWidth / 2;
+      minY = Math.min(y1, y2) - strokeWidth / 2;
+      maxY = Math.max(y1, y2) + strokeWidth / 2;
 
       return x >= minX && x <= maxX && y >= minY && y <= maxY;
   }
@@ -50,7 +62,11 @@ export function getElementPosition(x, y, elements) {
 }
 
 export function createElement(x1, y1, x2, y2, style, tool) {
-  return { id: uuid(), x1, y1, x2, y2, ...style, tool };
+  const element = { id: uuid(), x1, y1, x2, y2, ...style, tool };
+  if (tool === 'pen') {
+    element.points = [{x: x1, y: y1}];
+  }
+  return element;
 }
 
 export function updateElement(
@@ -105,6 +121,20 @@ export function duplicateElement(
 }
 
 export function moveElement(element, factorX, factorY = null) {
+  if (element.tool === "pen" && element.points) {
+    return {
+      ...element,
+      points: element.points.map(point => ({
+        x: point.x + factorX,
+        y: point.y + (factorY ?? factorX)
+      })),
+      x1: element.x1 + factorX,
+      y1: element.y1 + (factorY ?? factorX),
+      x2: element.x2 + factorX,
+      y2: element.y2 + (factorY ?? factorX),
+    };
+  }
+  
   return {
     ...element,
     x1: element.x1 + factorX,
