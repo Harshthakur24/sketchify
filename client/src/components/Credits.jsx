@@ -1,11 +1,11 @@
-// import { Github } from "../assets/icons";
+import { Github } from "../assets/icons";
 
 export default function Credits() {
   return (
     <section className="credits">
-      {/* <a href="https://github.com/toouil" id="credits">
-        <Github /> Created by KYROS
-      </a> */}
+      <a href="https://github.com/Harshthakur24" id="credits" target="_blank" rel="noopener noreferrer">
+        <Github /> Created by Harsh
+      </a>
     </section>
   );
 }
