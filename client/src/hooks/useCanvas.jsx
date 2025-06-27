@@ -288,21 +288,35 @@ export default function useCanvas() {
   useLayoutEffect(() => {
     const canvas = canvasRef.current;
     const context = canvas.getContext("2d");
+    
+    // Enable high-quality image rendering
+    context.imageSmoothingEnabled = true;
+    context.imageSmoothingQuality = 'high';
+
+    // Handle high DPI displays
+    const dpr = window.devicePixelRatio || 1;
+    const rect = canvas.getBoundingClientRect();
+    
+    canvas.width = rect.width * dpr;
+    canvas.height = rect.height * dpr;
+    
+    canvas.style.width = `${rect.width}px`;
+    canvas.style.height = `${rect.height}px`;
+    
+    context.scale(dpr, dpr);
 
     const zoomPositionX = 2;
     const zoomPositionY = 2;
-    // const zoomPositionX = scaleMouse ? canvas.width / scaleMouse.x : 2;
-    // const zoomPositionY = scaleMouse ? canvas.height / scaleMouse.y : 2;
 
-    const scaledWidth = canvas.width * scale;
-    const scaledHeight = canvas.height * scale;
+    const scaledWidth = rect.width * scale;
+    const scaledHeight = rect.height * scale;
 
-    const scaleOffsetX = (scaledWidth - canvas.width) / zoomPositionX;
-    const scaleOffsetY = (scaledHeight - canvas.height) / zoomPositionY;
+    const scaleOffsetX = (scaledWidth - rect.width) / zoomPositionX;
+    const scaleOffsetY = (scaledHeight - rect.height) / zoomPositionY;
 
     setScaleOffset({ x: scaleOffsetX, y: scaleOffsetY });
 
-    context.clearRect(0, 0, canvas.width, canvas.height);
+    context.clearRect(0, 0, rect.width, rect.height);
 
     context.save();
 
@@ -311,6 +325,10 @@ export default function useCanvas() {
       translate.y * scale - scaleOffsetY
     );
     context.scale(scale, scale);
+
+    // Set line join and cap for smoother lines
+    context.lineJoin = 'round';
+    context.lineCap = 'round';
 
     let focusedElement = null;
     elements.forEach((element) => {
