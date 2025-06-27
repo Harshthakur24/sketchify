@@ -459,14 +459,18 @@ section.collaborationBox h2 {
 }
 
 .collabCreate button {
-  font-family: secondaryFont;
-  padding: 10px 20px;
   background: #6965db;
-  border: 1px solid #6965db;
-  border-radius: 7px;
-  color: #ffffff;
-  font-size: 14px;
+  color: var(--background);
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
   cursor: pointer;
+  font-size: 14px;
+  transition: transform 0.2s ease;
+}
+
+.collabCreate button:hover {
+  transform: scale(1.05);
 }
 
 @media (max-width: 600px) {
@@ -490,14 +494,22 @@ section.collaborationBox h2 {
 }
 
 .collabLink button {
-  font-family: secondaryFont;
-  padding: 10px 15px;
   background: #6965db;
-  border: 1px solid #6965db;
-  border-radius: 7px;
-  color: #ffffff;
-  font-size: 12px;
+  color: var(--background);
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
   cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s ease;
+}
+
+.collabLink button:hover {
+  transform: scale(1.05);
+}
+
+.collabLink button.copied {
+  background: #4CAF50;
 }
 
 .collabLink input {

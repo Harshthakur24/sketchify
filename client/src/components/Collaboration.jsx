@@ -69,8 +69,12 @@ function CreateSession({ startSession }) {
 }
 
 function SessionInfo({ endSession }) {
+  const [isCopied, setIsCopied] = useState(false);
+
   const copy = () => {
     navigator.clipboard.writeText(window.location.href);
+    setIsCopied(true);
+    setTimeout(() => setIsCopied(false), 2000); // Reset after 2 seconds
   };
 
   return (
@@ -86,8 +90,12 @@ function SessionInfo({ endSession }) {
             value={window.location.href}
             disabled
           />
-          <button type="button" onClick={copy}>
-            Copy link
+          <button 
+            type="button" 
+            onClick={copy}
+            className={isCopied ? "copied" : ""}
+          >
+            {isCopied ? "Copied!" : "Copy link"}
           </button>
         </div>
       </div>
