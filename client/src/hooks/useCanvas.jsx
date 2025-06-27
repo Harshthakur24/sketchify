@@ -67,7 +67,7 @@ export default function useCanvas() {
     lockUI(true);
 
     if (inCorner) {
-      setResizeOldDementions(getElementById(selectedElement.id, elements))
+      setResizeOldDementions(getElementById(selectedElement.id, elements));
       setElements((prevState) => prevState);
       setMouseAction({ x: event.clientX, y: event.clientY });
       setCursor(cornerCursor(inCorner.slug));
@@ -130,7 +130,13 @@ export default function useCanvas() {
       style,
       selectedTool
     );
-    setElements((prevState) => [...prevState, element]);
+    
+    setElements((prevState) => {
+      if (!prevState || !Array.isArray(prevState)) {
+        return [element];
+      }
+      return [...prevState, element];
+    });
   };
 
   const handleMouseMove = (event) => {
@@ -155,23 +161,34 @@ export default function useCanvas() {
     }
 
     if (action == "draw") {
+      if (!elements || !Array.isArray(elements)) return;
       const index = elements.length - 1;
-      const { x1, y1, tool } = elements[index];
+      if (index < 0) return;
+      
+      const currentElement = elements[index];
+      if (!currentElement) return;
 
-      if (tool === "pen") {
-        const newPoints = [...elements[index].points, { x: clientX, y: clientY }];
+      if (currentElement.tool === "pen") {
+        const newPoints = [...(currentElement.points || []), { x: clientX, y: clientY }];
         updateElement(
-          elements[index].id, 
-          { points: newPoints, x2: clientX, y2: clientY }, 
-          setElements, 
+          currentElement.id,
+          { 
+            points: newPoints,
+            x1: newPoints[0].x,
+            y1: newPoints[0].y,
+            x2: clientX,
+            y2: clientY
+          },
+          setElements,
           elements,
           false
         );
       } else {
+        const { x1, y1 } = currentElement;
         updateElement(
-          elements[index].id, 
-          { x1, y1, x2: clientX, y2: clientY }, 
-          setElements, 
+          currentElement.id,
+          { x1, y1, x2: clientX, y2: clientY },
+          setElements,
           elements,
           false
         );
@@ -242,21 +259,45 @@ export default function useCanvas() {
     setAction("none");
     lockUI(false);
 
-    if (event.clientX == mouseAction.x && event.clientY == mouseAction.y) {
+    if (event.clientX === mouseAction.x && event.clientY === mouseAction.y) {
       setElements("prevState");
       return;
     }
 
-    if (action == "draw") {
-      const lastElement = elements.at(-1);
+    if (action === "draw") {
+      if (!elements || !Array.isArray(elements)) return;
+      const lastElement = elements[elements.length - 1];
+      if (!lastElement) return;
+      
       if (lastElement.tool === "pen") {
-        updateElement(lastElement.id, {}, setElements, elements, true);
-        if (!lockTool) {
-          setSelectedTool("selection");
+        if (!lastElement.points || lastElement.points.length < 2) {
+          setElements(prevElements => prevElements.slice(0, -1));
+          return;
         }
+        
+        updateElement(
+          lastElement.id,
+          {
+            points: lastElement.points,
+            x1: lastElement.points[0].x,
+            y1: lastElement.points[0].y,
+            x2: lastElement.points[lastElement.points.length - 1].x,
+            y2: lastElement.points[lastElement.points.length - 1].y
+          },
+          setElements,
+          elements,
+          true
+        );
       } else {
         const { id, x1, y1, x2, y2 } = adjustCoordinates(lastElement);
-        updateElement(id, { x1, x2, y1, y2 }, setElements, elements, true);
+        updateElement(
+          id,
+          { x1, x2, y1, y2 },
+          setElements,
+          elements,
+          true
+        );
+        
         if (!lockTool) {
           setSelectedTool("selection");
           setSelectedElement(lastElement);
@@ -265,9 +306,9 @@ export default function useCanvas() {
     }
 
     if (action.startsWith("resize")) {
-      const { id, x1, y1, x2, y2 } = adjustCoordinates(
-        getElementById(selectedElement.id, elements)
-      );
+      const element = getElementById(selectedElement?.id, elements);
+      if (!element) return;
+      const { id, x1, y1, x2, y2 } = adjustCoordinates(element);
       updateElement(id, { x1, x2, y1, y2 }, setElements, elements, true);
     }
   };
@@ -297,53 +338,62 @@ export default function useCanvas() {
     const dpr = window.devicePixelRatio || 1;
     const rect = canvas.getBoundingClientRect();
     
+    // Set canvas size
     canvas.width = rect.width * dpr;
     canvas.height = rect.height * dpr;
-    
     canvas.style.width = `${rect.width}px`;
     canvas.style.height = `${rect.height}px`;
-    
+
+    // Clear and prepare context
+    context.clearRect(0, 0, canvas.width, canvas.height);
     context.scale(dpr, dpr);
-
-    const zoomPositionX = 2;
-    const zoomPositionY = 2;
-
-    const scaledWidth = rect.width * scale;
-    const scaledHeight = rect.height * scale;
-
-    const scaleOffsetX = (scaledWidth - rect.width) / zoomPositionX;
-    const scaleOffsetY = (scaledHeight - rect.height) / zoomPositionY;
-
-    setScaleOffset({ x: scaleOffsetX, y: scaleOffsetY });
-
-    context.clearRect(0, 0, rect.width, rect.height);
-
+    
+    // Apply transformations
     context.save();
-
-    context.translate(
-      translate.x * scale - scaleOffsetX,
-      translate.y * scale - scaleOffsetY
-    );
+    context.translate(translate.x * scale - scaleOffset.x, translate.y * scale - scaleOffset.y);
     context.scale(scale, scale);
 
     // Set line join and cap for smoother lines
     context.lineJoin = 'round';
     context.lineCap = 'round';
 
-    let focusedElement = null;
-    elements.forEach((element) => {
-      draw(element, context);
-      if (element.id == selectedElement?.id) focusedElement = element;
-    });
+    // Draw all elements
+    if (elements && Array.isArray(elements)) {
+      elements.forEach((element) => {
+        if (element) {
+          context.save();
+          draw(element, context);
+          context.restore();
+        }
+      });
 
-    const pd = minmax(10 / scale, [0.5, 50]);
-    if (focusedElement != null) {
-      drawFocuse(focusedElement, context, pd, scale);
+      // Draw focus after all elements
+      const pd = minmax(10 / scale, [0.5, 50]);
+      if (selectedElement) {
+        const focusedElement = getElementById(selectedElement.id, elements);
+        if (focusedElement) {
+          context.save();
+          drawFocuse(focusedElement, context, pd, scale);
+          context.restore();
+        }
+      }
+      setPadding(pd);
     }
-    setPadding(pd);
 
     context.restore();
-  }, [elements, selectedElement, scale, translate, dimension]);
+
+    // Update scale offset
+    const zoomPositionX = 2;
+    const zoomPositionY = 2;
+    const scaledWidth = rect.width * scale;
+    const scaledHeight = rect.height * scale;
+    const scaleOffsetX = (scaledWidth - rect.width) / zoomPositionX;
+    const scaleOffsetY = (scaledHeight - rect.height) / zoomPositionY;
+
+    if (Math.abs(scaleOffset.x - scaleOffsetX) > 0.1 || Math.abs(scaleOffset.y - scaleOffsetY) > 0.1) {
+      setScaleOffset({ x: scaleOffsetX, y: scaleOffsetY });
+    }
+  }, [elements, selectedElement, scale, translate, dimension, scaleOffset]);
 
   useEffect(() => {
     const keyDownFunction = (event) => {
@@ -416,21 +466,20 @@ export default function useCanvas() {
   }, [selectedTool]);
 
   useEffect(() => {
-    if (action == "translate") {
+    if (action === "translate") {
       document.documentElement.style.setProperty("--canvas-cursor", "grabbing");
     } else if (action.startsWith("resize")) {
       document.documentElement.style.setProperty("--canvas-cursor", cursor);
     } else if (
-      (keys.has(" ") || selectedTool == "hand") &&
-      action != "move" &&
-      action != "resize"
+      (keys.has(" ") || selectedTool === "hand") &&
+      action !== "move" &&
+      action !== "resize"
     ) {
       document.documentElement.style.setProperty("--canvas-cursor", "grab");
-    } else if (selectedTool !== "selection") {
-      document.documentElement.style.setProperty(
-        "--canvas-cursor",
-        "crosshair"
-      );
+    } else if (selectedTool === "pen" && action === "draw") {
+      document.documentElement.style.setProperty("--canvas-cursor", "crosshair");
+    } else if (selectedTool !== "selection" && selectedTool !== "hand") {
+      document.documentElement.style.setProperty("--canvas-cursor", "crosshair");
     } else if (inCorner) {
       document.documentElement.style.setProperty(
         "--canvas-cursor",
@@ -441,7 +490,7 @@ export default function useCanvas() {
     } else {
       document.documentElement.style.setProperty("--canvas-cursor", "default");
     }
-  }, [keys, selectedTool, action, isInElement, inCorner]);
+  }, [keys, selectedTool, action, isInElement, inCorner, cursor]);
 
   useEffect(() => {
     const fakeWheel = (event) => {

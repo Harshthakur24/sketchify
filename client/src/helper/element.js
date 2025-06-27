@@ -58,7 +58,7 @@ export function isWithinElement(x, y, element) {
 }
 
 export function getElementPosition(x, y, elements) {
-  return elements.filter((element) => isWithinElement(x, y, element)).at(-1);
+  return elements?.filter((element) => isWithinElement(x, y, element)).at(-1);
 }
 
 export function createElement(x1, y1, x2, y2, style, tool) {
@@ -186,7 +186,7 @@ export function minmax(value, interval) {
 }
 
 export function getElementById(id, elements) {
-  return elements.find((element) => element.id == id);
+  return elements?.find((element) => element.id == id);
 }
 
 export function adjustCoordinates(element) {
