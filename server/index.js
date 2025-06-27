@@ -10,7 +10,6 @@ const parser = require("socket.io-msgpack-parser");
 const ALLOWED_ORIGINS = [
   "http://localhost:5173",
   "https://sketchify-three.vercel.app",
-  "https://sketchify-three.vercel.app:5173"
 ];
 
 const corsOptions = {
