@@ -37,6 +37,7 @@ export const shapes = {
     ctx.lineTo(x2, y1 + height / 2);
     ctx.lineTo(x1 + width / 2, y2);
     ctx.lineTo(x1, y1 + height / 2);
+    ctx.lineTo(x1 + width / 2, y1);
   },
   circle: (x1, y1, x2, y2, ctx) => {
     const width = x2 - x1;
