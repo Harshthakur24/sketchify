@@ -1,4 +1,5 @@
 import useCanvas from "../hooks/useCanvas";
+import { useAppContext } from "../provider/AppStates";
 
 export default function Canvas() {
   const {
@@ -9,6 +10,8 @@ export default function Canvas() {
     handleMouseUp,
     handleWheel,
   } = useCanvas();
+
+  const { selectedTool } = useAppContext();
 
   return (
     <>
@@ -21,6 +24,7 @@ export default function Canvas() {
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
         onWheel={handleWheel}
+        data-tool={selectedTool}
       />
     </>
   );

@@ -165,6 +165,24 @@ section.toolbar .toolbutton.lock[data-lock="true"] {
   background: #e0dfffd5;
 }
 
+section.toolbar .toolbutton.eraser {
+  cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="%23000"><circle cx="10" cy="10" r="5" fill="white" stroke="black" stroke-width="1"/></svg>') 10 10, auto;
+}
+
+section.toolbar .toolbutton.eraser:hover {
+  background: rgba(224, 223, 255, 0.5);
+}
+
+section.toolbar .toolbutton.eraser.selected {
+  color: #030064;
+  background: #e0dfffd5;
+}
+
+/* Add cursor styles for canvas when eraser is selected */
+canvas[data-tool="eraser"] {
+  cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="%23000"><circle cx="10" cy="10" r="5" fill="white" stroke="black" stroke-width="1"/></svg>') 10 10, auto !important;
+}
+
 section.zoomOptions {
   display: flex;
   gap: 5px;

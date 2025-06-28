@@ -87,6 +87,15 @@ export default function useCanvas() {
       return;
     }
 
+    if (selectedTool === "eraser") {
+      const element = getElementPosition(clientX, clientY, elements);
+      if (element) {
+        deleteElement(element, setElements, setSelectedElement);
+      }
+      setAction("erasing");
+      return;
+    }
+
     if (selectedTool == "selection") {
       const element = getElementPosition(clientX, clientY, elements);
 
@@ -158,6 +167,14 @@ export default function useCanvas() {
       setIsInElement(true);
     } else {
       setIsInElement(false);
+    }
+
+    if (action === "erasing") {
+      const element = getElementPosition(clientX, clientY, elements);
+      if (element) {
+        deleteElement(element, setElements, setSelectedElement);
+      }
+      return;
     }
 
     if (action == "draw") {
