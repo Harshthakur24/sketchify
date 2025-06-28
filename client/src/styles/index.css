@@ -165,9 +165,6 @@ section.toolbar .toolbutton.lock[data-lock="true"] {
   background: #e0dfffd5;
 }
 
-section.toolbar .toolbutton.eraser {
-  cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="%23000"><circle cx="10" cy="10" r="5" fill="white" stroke="black" stroke-width="1"/></svg>') 10 10, auto;
-}
 
 section.toolbar .toolbutton.eraser:hover {
   background: rgba(224, 223, 255, 0.5);
@@ -579,4 +576,28 @@ section.credits {
 
 #credits:hover {
   text-decoration: underline;
+}
+
+/* Default canvas cursor */
+.canvas {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: #fff;
+  cursor: crosshair;
+}
+
+/* Tool-specific cursors */
+canvas[data-tool="hand"] {
+  cursor: grab;
+}
+
+canvas[data-tool="eraser"] {
+  cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="%23000"><circle cx="10" cy="10" r="5" fill="white" stroke="black" stroke-width="1"/></svg>') 10 10, auto !important;
+}
+
+canvas[data-tool="pen"] {
+  cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="2"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg>') 2 18, auto !important;
 }
