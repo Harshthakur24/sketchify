@@ -23,4 +23,29 @@ socket.on("connect_error", (error) => {
 
 socket.on("disconnect", (reason) => {
     console.log("Disconnected:", reason);
+    if (reason === "io server disconnect") {
+        // Server initiated disconnect, try to reconnect
+        socket.connect();
+    }
+});
+
+socket.on("error", (error) => {
+    console.error("Socket error:", error);
+});
+
+// Reconnection events
+socket.on("reconnect", (attemptNumber) => {
+    console.log("Reconnected after", attemptNumber, "attempts");
+});
+
+socket.on("reconnect_attempt", (attemptNumber) => {
+    console.log("Attempting to reconnect:", attemptNumber);
+});
+
+socket.on("reconnect_error", (error) => {
+    console.error("Reconnection error:", error);
+});
+
+socket.on("reconnect_failed", () => {
+    console.error("Failed to reconnect after all attempts");
 });

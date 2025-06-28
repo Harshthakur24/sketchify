@@ -14,7 +14,6 @@ import {
 import { BACKGROUND_COLORS, STROKE_COLORS, STROKE_STYLES } from "../global/var";
 import { getElementById, minmax } from "../helper/element";
 import useHistory from "../hooks/useHistory";
-import { socket } from "../api/socket";
 
 const AppContext = createContext();
 
@@ -42,8 +41,8 @@ const isElementsInLocal = () => {
 };
 
 const AppContextProvider = ({ children }) => {
-  const [elements, setElements, undo, redo] = useHistory(isElementsInLocal(), null);
   const [session, setSession] = useState(null);
+  const [elements, setElements, undo, redo] = useHistory(isElementsInLocal(), session);
   const [selectedElement, setSelectedElement] = useState(null);
   const [action, setAction] = useState("none");
   const [selectedTool, setSelectedTool] = useState("pen");
@@ -175,14 +174,6 @@ const AppContextProvider = ({ children }) => {
       }
     ],
   ];
-
-  useEffect(() => {
-    if (session) {
-      socket.on("setElements", (data) => {
-        setElements(data, true, false);
-      });
-    }
-  }, [session, setElements]);
 
   const contextValue = {
     action,

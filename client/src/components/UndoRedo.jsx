@@ -1,4 +1,3 @@
-import React from "react";
 import { Redo, Undo } from "../assets/icons";
 import { useAppContext } from "../provider/AppStates";
 

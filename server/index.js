@@ -31,26 +31,73 @@ const io = new Server(server, {
   pingInterval: 25000
 });
 
+// Keep track of room participants
+const rooms = new Map();
+
 io.on("connection", (socket) => {
   console.log("Client connected:", socket.id);
   
   socket.on("join", (room) => {
-    socket.join(room);
-    console.log(`Socket ${socket.id} joined room: ${room}`);
+    try {
+      socket.join(room);
+      // Add user to room tracking
+      if (!rooms.has(room)) {
+        rooms.set(room, new Set());
+      }
+      rooms.get(room).add(socket.id);
+      console.log(`Socket ${socket.id} joined room: ${room}`);
+      console.log(`Room ${room} has ${rooms.get(room).size} participants`);
+    } catch (error) {
+      console.error("Error joining room:", error);
+      socket.emit("error", "Failed to join room");
+    }
   });
 
   socket.on("leave", (room) => {
-    socket.leave(room);
-    console.log(`Socket ${socket.id} left room: ${room}`);
+    try {
+      socket.leave(room);
+      // Remove user from room tracking
+      if (rooms.has(room)) {
+        rooms.get(room).delete(socket.id);
+        if (rooms.get(room).size === 0) {
+          rooms.delete(room);
+        }
+      }
+      console.log(`Socket ${socket.id} left room: ${room}`);
+    } catch (error) {
+      console.error("Error leaving room:", error);
+    }
   });
 
   socket.on("getElements", ({ elements, room }) => {
-    console.log(`Broadcasting elements to room: ${room}`);
-    socket.to(room).emit("setElements", elements);
+    try {
+      if (!room || !rooms.has(room)) {
+        console.error(`Invalid room: ${room}`);
+        return;
+      }
+      console.log(`Broadcasting elements to room: ${room}`);
+      socket.to(room).emit("setElements", elements);
+    } catch (error) {
+      console.error("Error broadcasting elements:", error);
+      socket.emit("error", "Failed to broadcast elements");
+    }
   });
 
   socket.on("disconnect", () => {
-    console.log("Client disconnected:", socket.id);
+    try {
+      // Clean up room tracking
+      for (const [room, participants] of rooms.entries()) {
+        if (participants.has(socket.id)) {
+          participants.delete(socket.id);
+          if (participants.size === 0) {
+            rooms.delete(room);
+          }
+        }
+      }
+      console.log("Client disconnected:", socket.id);
+    } catch (error) {
+      console.error("Error handling disconnect:", error);
+    }
   });
 });
 
