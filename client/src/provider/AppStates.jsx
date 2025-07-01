@@ -10,7 +10,8 @@ import {
   Lock,
   Arrow,
   Pen,
-  Eraser
+  Eraser,
+  Text
 } from "../assets/icons";
 import { BACKGROUND_COLORS, STROKE_COLORS, STROKE_STYLES } from "../global/var";
 import { getElementById, minmax } from "../helper/element";
@@ -177,6 +178,12 @@ const AppContextProvider = ({ children }) => {
         slug: "line",
         icon: Line,
         title: "Line",
+        toolAction,
+      },
+      {
+        slug: "text",
+        icon: Text,
+        title: "Text",
         toolAction,
       }
     ],

@@ -1,4 +1,10 @@
 export const shapes = {
+  text: (x1, y1, x2, y2, ctx, text = "") => {
+    ctx.font = "16px Arial";
+    ctx.textBaseline = "top";
+    ctx.fillStyle = ctx.strokeStyle; // Use stroke color for text
+    ctx.fillText(text, x1, y1);
+  },
   arrow: (x1, y1, x2, y2, ctx) => {
     const headlen = 5;
     const angle = Math.atan2(y2 - y1, x2 - x1);
@@ -204,6 +210,7 @@ export function draw(element, context) {
     fill,
     opacity,
     points,
+    text,
   } = element;
 
   context.lineWidth = strokeWidth;
@@ -218,6 +225,8 @@ export function draw(element, context) {
   if (tool === "pen") {
     shapes[tool](x1, y1, x2, y2, context, points);
     context.stroke();
+  } else if (tool === "text") {
+    shapes[tool](x1, y1, x2, y2, context, text);
   } else {
     shapes[tool](x1, y1, x2, y2, context);
     context.fill();

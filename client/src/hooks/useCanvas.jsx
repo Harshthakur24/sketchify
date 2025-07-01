@@ -410,12 +410,69 @@ export default function useCanvas() {
     if (Math.abs(scaleOffset.x - scaleOffsetX) > 0.1 || Math.abs(scaleOffset.y - scaleOffsetY) > 0.1) {
       setScaleOffset({ x: scaleOffsetX, y: scaleOffsetY });
     }
-  }, [elements, selectedElement, scale, translate, dimension, scaleOffset]);
+  }, [elements, selectedElement, scale, translate, dimension, scaleOffset, setScaleOffset]);
 
   useEffect(() => {
     const keyDownFunction = (event) => {
       const { key, ctrlKey, metaKey, shiftKey } = event;
       const prevent = () => event.preventDefault();
+      
+      // Handle text input
+      if (selectedElement && selectedElement.tool === 'text') {
+        if (key === 'Enter') {
+          prevent();
+          // Create a new text element below the current one
+          const newElement = createElement(
+            selectedElement.x1,
+            selectedElement.y1 + 20, // Add some vertical spacing
+            selectedElement.x2,
+            selectedElement.y2 + 20,
+            style,
+            'text'
+          );
+          setElements(prevElements => [...prevElements, newElement]);
+          setSelectedElement(newElement);
+          return;
+        }
+
+        if (key === 'Escape') {
+          prevent();
+          if (!lockTool) {
+            setSelectedTool("selection");
+          }
+          setSelectedElement(null);
+          return;
+        }
+        
+        if (key === 'Backspace') {
+          prevent();
+          const newText = selectedElement.text.slice(0, -1);
+          updateElement(
+            selectedElement.id,
+            { text: newText },
+            setElements,
+            elements,
+            false
+          );
+          setSelectedElement({...selectedElement, text: newText});
+          return;
+        }
+        
+        if (key === ' ' || (key.length === 1 && !ctrlKey && !metaKey)) {
+          prevent();
+          const newText = selectedElement.text + key;
+          updateElement(
+            selectedElement.id,
+            { text: newText },
+            setElements,
+            elements,
+            false
+          );
+          setSelectedElement({...selectedElement, text: newText});
+          return;
+        }
+      }
+      
       if (selectedElement) {
         if (key == "Backspace" || key == "Delete") {
           prevent();
@@ -474,13 +531,13 @@ export default function useCanvas() {
     return () => {
       window.removeEventListener("keydown", keyDownFunction);
     };
-  }, [undo, redo, selectedElement]);
+  }, [undo, redo, selectedElement, elements, setElements, lockTool, setSelectedTool, setSelectedElement, style]);
 
   useEffect(() => {
     if (selectedTool != "selection") {
       setSelectedElement(null);
     }
-  }, [selectedTool]);
+  }, [selectedTool, setSelectedElement]);
 
   useEffect(() => {
     if (action === "translate") {

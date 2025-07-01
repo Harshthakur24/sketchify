@@ -66,6 +66,9 @@ export function createElement(x1, y1, x2, y2, style, tool) {
   if (tool === 'pen') {
     element.points = [{x: x1, y: y1}];
   }
+  if (tool === 'text') {
+    element.text = '';
+  }
   return element;
 }
 

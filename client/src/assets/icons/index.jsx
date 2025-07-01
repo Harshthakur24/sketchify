@@ -361,3 +361,23 @@ export function Pen() {
     </svg>
   );
 }
+
+export const Text = () => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    height={demention}
+    fill="currentColor"
+    viewBox="0 0 24 24"
+  >
+    <text
+      x="12"
+      y="17"
+      fontSize="24"
+      fontWeight="medium"
+      fontFamily="Arial"
+      textAnchor="middle"
+    >
+      T
+    </text>
+  </svg>
+);
