@@ -197,7 +197,6 @@ export function drawFocuse(element, context, padding, scale) {
 }
 
 export function draw(element, context) {
-  context.beginPath();
   const {
     tool,
     x1,
@@ -213,6 +212,10 @@ export function draw(element, context) {
     text,
   } = element;
 
+  // Skip drawing for tools that don't have shape functions
+  if (!shapes[tool]) return;
+
+  context.beginPath();
   context.lineWidth = strokeWidth;
   context.strokeStyle = rgba(strokeColor, opacity);
   context.fillStyle = rgba(fill, opacity);

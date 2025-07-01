@@ -16,7 +16,7 @@ export default function WorkSpace() {
       setSession(room);
       socket.emit("join", room);
     }
-  }, [searchParams]);
+  }, [searchParams, setSession]);
 
   return (
     <>
