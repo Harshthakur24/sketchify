@@ -6,6 +6,7 @@ const http = require("http");
 const { Server } = require("socket.io");
 const cors = require("cors");
 const parser = require("socket.io-msgpack-parser");
+const { createClient } = require('redis');
 
 const ALLOWED_ORIGINS = [
   "http://localhost:5173",
@@ -31,20 +32,69 @@ const io = new Server(server, {
   pingInterval: 25000
 });
 
-// Keep track of room participants
+
 const rooms = new Map();
+
+
+let redis = null;
+const connectRedis = async () => {
+  try {
+    redis = createClient({
+      url: 'redis://localhost:6379',
+    });
+    await redis.connect();
+    console.log('Redis connected - room persistence enabled');
+  } catch (error) {
+    console.log('Redis not available - using memory only:', error.message);
+    redis = null;
+  }
+};
+
+
+const saveRoomData = async (roomId, elements) => {
+  if (redis) {
+    try {
+      await redis.setEx(`room:${roomId}`, 604800, JSON.stringify(elements)); 
+    } catch (error) {
+      console.error('Error saving to Redis:', error);
+    }
+  }
+};
+
+
+const loadRoomData = async (roomId) => {
+  if (redis) {
+    try {
+      const data = await redis.get(`room:${roomId}`);
+      return data ? JSON.parse(data) : [];
+    } catch (error) {
+      console.error('Error loading from Redis:', error);
+    }
+  }
+  return [];
+};
+
+connectRedis();
 
 io.on("connection", (socket) => {
   console.log("Client connected:", socket.id);
   
-  socket.on("join", (room) => {
+  socket.on("join", async (room) => {
     try {
       socket.join(room);
-      // Add user to room tracking
+
       if (!rooms.has(room)) {
         rooms.set(room, new Set());
       }
       rooms.get(room).add(socket.id);
+      
+
+      const existingElements = await loadRoomData(room);
+      if (existingElements.length > 0) {
+        socket.emit("setElements", existingElements);
+        console.log(`Sent ${existingElements.length} existing elements to ${socket.id}`);
+      }
+      
       console.log(`Socket ${socket.id} joined room: ${room}`);
       console.log(`Room ${room} has ${rooms.get(room).size} participants`);
     } catch (error) {
@@ -56,7 +106,7 @@ io.on("connection", (socket) => {
   socket.on("leave", (room) => {
     try {
       socket.leave(room);
-      // Remove user from room tracking
+      
       if (rooms.has(room)) {
         rooms.get(room).delete(socket.id);
         if (rooms.get(room).size === 0) {
@@ -69,13 +119,17 @@ io.on("connection", (socket) => {
     }
   });
 
-  socket.on("getElements", ({ elements, room }) => {
+  socket.on("getElements", async ({ elements, room }) => {
     try {
       if (!room || !rooms.has(room)) {
         console.error(`Invalid room: ${room}`);
         return;
       }
-      console.log(`Broadcasting elements to room: ${room}`);
+      
+      // Save to Redis for persistence
+      await saveRoomData(room, elements);
+      
+      console.log(`Broadcasting ${elements.length} elements to room: ${room}`);
       socket.to(room).emit("setElements", elements);
     } catch (error) {
       console.error("Error broadcasting elements:", error);
